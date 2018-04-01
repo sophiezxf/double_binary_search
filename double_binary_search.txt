@@ -1,0 +1,258 @@
+clear;
+
+       
+FDTD_count_max=1500;
+nx = 25; 
+ny = 15;
+n_cols = nx; 
+n_rows = ny;        
+HoleNum=n_cols*n_rows;
+ 
+
+A = matrix(ny,nx);
+for (a=1:ny)
+{
+for (b=1:nx)
+{A(a,b)=rand(0,1,2);}
+}
+Hole_start=reshape(A,[1,HoleNum]);
+Hole_record=matrix(FDTD_count_max,HoleNum);
+Hole_record(1,:)=Hole_start;
+FOM_record=matrix(FDTD_count_max,11);
+FOM_record_1 = matrix(FDTD_count_max,11);
+FOM_record_2 = matrix(FDTD_count_max,11);
+FOM_record_3 = matrix(FDTD_count_max,11);
+FOM_record_4 = matrix(FDTD_count_max,11);
+FOM_record_5 = matrix(FDTD_count_max,11);
+FOM_worst_record=matrix(FDTD_count_max,1);
+
+        x_center = 1.3e-6;
+        z = 0.11e-6;
+        z_span = 0.22e-6;
+        ax = 0.15e-6;
+        ay = 0.15e-6;
+        radius = 0.05e-6;
+        R_norm1=radius*0.9;
+        R_norm2=radius*0.95; 
+        R_norm3=radius;
+        R_norm4=radius*1.05;
+        R_norm5=radius*1.1;   
+
+
+Hole_1D_temp=Hole_record(1,:);
+Hole_2D_temp=reshape(transpose(Hole_1D_temp),[ny,nx]);
+Hole_1D_previous_best=Hole_1D_temp;
+Hole_2D_previous_best=reshape(transpose(Hole_1D_previous_best),[ny,nx]);
+
+load("PC_MMI_03_base.lms");
+switchtolayout;
+selectpartial("hole");
+delete;
+FOM = Loss+Crosstalk+Reflection;
+FOM_record(1,:)= FOM;
+FOM_worst_record(1,:)= max(FOM);
+FOM_previous_best=FOM_worst_record(1,:);
+FDTD_count=1;
+
+
+save("PC_MMI_03_updated.lms");
+
+########## start DBS
+
+flip_ID_start = 1;
+for (FDTD_count = 1:FDTD_count_max)
+{
+flip_ID=flip_ID_start+FDTD_count-1;
+if (flip_ID>HoleNum){flip_ID=flip_ID-HoleNum;}
+
+Hole_1D_updated = Hole_1D_previous_best;
+Hole_1D_updated(flip_ID) = mod(Hole_1D_updated(flip_ID)+1,2);
+Hole_2D_updated=reshape(transpose(Hole_1D_updated),[ny,nx]);
+Hole_record(FDTD_count+1,:)=Hole_1D_updated;
+
+##draw&run1
+switchtolayout;
+selectpartial("hole");
+delete; 
+
+for (i=1:n_rows)
+{
+for (j=1:n_cols)
+{
+ytemp=(-i+n_rows/2+0.5)*ay;
+xtemp=(j-n_cols/2-0.5)*ax;
+                
+if (Hole_2D_updated(i,j)~=0)
+{addcircle;
+set("radius", R_norm1);
+set("x", xtemp);
+set("y",ytemp);
+set("z", z);
+set("z span", z_span);
+set("material","SiO2 (Glass) - Palik");
+set("name","hole"+num2str(i));}     
+}            
+}    
+ 
+run;
+T=getresult("modeExpansion_T", "expansion for T");
+Transmission = T.T_forward;
+R=getresult("modeExpansion_R", "expansion for R");
+Reflection = R.T_backward;
+Loss = 1-abs(Transmission(:,2));
+Crosstalk=Transmission(:,1);
+Reflection = abs(Reflection);
+FOM_temp1 = Loss+Crosstalk+Reflection;
+FOM_record1(1,:) = FOM_temp1;
+
+##draw&run2
+switchtolayout;
+selectpartial("hole");
+delete; 
+
+for (i=1:n_rows)
+{
+for (j=1:n_cols)
+{
+ytemp=(-i+n_rows/2+0.5)*ay;
+xtemp=(j-n_cols/2-0.5)*ax;
+                
+if (Hole_2D_updated(i,j)~=0)
+{addcircle;
+set("radius", R_norm2);
+set("x", xtemp);
+set("y",ytemp);
+set("z", z);
+set("z span", z_span);
+set("material","SiO2 (Glass) - Palik");
+set("name","hole"+num2str(i));}     
+}            
+}    
+ 
+run;
+T=getresult("modeExpansion_T", "expansion for T");
+Transmission = T.T_forward;
+R=getresult("modeExpansion_R", "expansion for R");
+Reflection = R.T_backward;
+Loss = 1-abs(Transmission(:,2));
+Crosstalk=Transmission(:,1);
+Reflection = abs(Reflection);
+FOM_temp2 = Loss+Crosstalk+Reflection;
+
+##draw&run3
+switchtolayout;
+selectpartial("hole");
+delete; 
+
+for (i=1:n_rows)
+{
+for (j=1:n_cols)
+{
+ytemp=(-i+n_rows/2+0.5)*ay;
+xtemp=(j-n_cols/2-0.5)*ax;
+                
+if (Hole_2D_updated(i,j)~=0)
+{addcircle;
+set("radius", R_norm3);
+set("x", xtemp);
+set("y",ytemp);
+set("z", z);
+set("z span", z_span);
+set("material","SiO2 (Glass) - Palik");
+set("name","hole"+num2str(i));}     
+}            
+}    
+ 
+run;
+T=getresult("modeExpansion_T", "expansion for T");
+Transmission = T.T_forward;
+R=getresult("modeExpansion_R", "expansion for R");
+Reflection = R.T_backward;
+Loss = 1-abs(Transmission(:,2));
+Crosstalk=Transmission(:,1);
+Reflection = abs(Reflection);
+FOM_temp3 = Loss+Crosstalk+Reflection;
+
+##draw&run4
+switchtolayout;
+selectpartial("hole");
+delete; 
+
+for (i=1:n_rows)
+{
+for (j=1:n_cols)
+{
+ytemp=(-i+n_rows/2+0.5)*ay;
+xtemp=(j-n_cols/2-0.5)*ax;
+                
+if (Hole_2D_updated(i,j)~=0)
+{addcircle;
+set("radius", R_norm4);
+set("x", xtemp);
+set("y",ytemp);
+set("z", z);
+set("z span", z_span);
+set("material","SiO2 (Glass) - Palik");
+set("name","hole"+num2str(i));}     
+}            
+}    
+ 
+run;
+T=getresult("modeExpansion_T", "expansion for T");
+Transmission = T.T_forward;
+R=getresult("modeExpansion_R", "expansion for R");
+Reflection = R.T_backward;
+Loss = 1-abs(Transmission(:,2));
+Crosstalk=Transmission(:,1);
+Reflection = abs(Reflection);
+FOM_temp4 = Loss+Crosstalk+Reflection;
+
+##draw&run5
+switchtolayout;
+selectpartial("hole");
+delete; 
+
+for (i=1:n_rows)
+{
+for (j=1:n_cols)
+{
+ytemp=(-i+n_rows/2+0.5)*ay;
+xtemp=(j-n_cols/2-0.5)*ax;
+                
+if (Hole_2D_updated(i,j)~=0)
+{addcircle;
+set("radius", R_norm5);
+set("x", xtemp);
+set("y",ytemp);
+set("z", z);
+set("z span", z_span);
+set("material","SiO2 (Glass) - Palik");
+set("name","hole"+num2str(i));}     
+}            
+}    
+ 
+run;
+T=getresult("modeExpansion_T", "expansion for T");
+Transmission = T.T_forward;
+R=getresult("modeExpansion_R", "expansion for R");
+Reflection = R.T_backward;
+Loss = 1-abs(Transmission(:,2));
+Crosstalk=Transmission(:,1);
+Reflection = abs(Reflection);
+FOM_temp5 = Loss+Crosstalk+Reflection;
+
+FOM = (FOM_temp1+FOM_temp2+FOM_temp3+FOM_temp4+FOM_temp5)/5
+FOM_record(FDTD_count+1,:)= FOM;
+FOM_worst_record(FDTD_count+1,:)= max(FOM);
+
+if(FOM_worst_record(FDTD_count+1,:)<FOM_previous_best)
+{
+FOM_previous_best=FOM_worst_record(FDTD_count+1,:);
+Hole_1D_previous_best = Hole_1D_updated;    
+}
+
+#save("PC_MMI_03_updated"+num2str(FDTD_count+1)+".lms");   
+save("PC_MMI_03_updated.lms"); 
+FDTD_count=FDTD_count+1;  
+matlabsave("Log file");      
+}
