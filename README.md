@@ -1,0 +1,2 @@
+# double_binary_search
+This code script implements the double binary search algorithm in Matlab to drive the optic simulation tool Lumerical to find the optimized result for the mode converter device. There are three optimize parameters (transmission, return loss and coupling) that we take into consideration. We also add the feature that this optimized result have 10% tolerance to the fabrication inaccuracy.
