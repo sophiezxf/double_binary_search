@@ -255,4 +255,5 @@ Hole_1D_previous_best = Hole_1D_updated;
 save("PC_MMI_03_updated.lms"); 
 FDTD_count=FDTD_count+1;  
 matlabsave("Log file");      
+
 }
